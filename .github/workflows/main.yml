@@ -1,69 +1,51 @@
-name: CI-CD Pipeline for Node App
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      -main
+    branches: [ "main" ]
 
 jobs:
   test:
-    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
       - name: Run tests
-        run: |
-          npm test > test-results.txt
-          cat test-results.txt
+        run: npm test > test-output.txt
 
-      - name: Upload test results artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload Test Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results.txt
+          path: test-output.txt
 
   deploy:
-    name: Deploy to Self Hosted Runner
-    needs: [test]
-    runs-on: self-hosted   # Your runner label
+    needs: test
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Download test results
-        uses: actions/download-artifact@v3
+      - name: Download Test Artifact
+        uses: actions/download-artifact@v4
         with:
           name: test-results
 
-      - name: Display test results
-        run: cat test-results.txt
+      - name: Show artifacts
+        run: cat test-output.txt
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Stop existing app (if running)
+      - name: Deploy App
         run: |
-          pm2 stop node-app || true
-
-      - name: Start App
-        run: |
-          pm2 start app.js --name node-app
-          pm2 save
-
+          npm install
+          pm2 restart app || pm2 start app.js --name="app"
