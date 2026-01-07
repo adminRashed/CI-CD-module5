@@ -2,12 +2,8 @@ name: CI-CD Pipeline for Node App
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-
-permissions:
-  contents: read
-  actions: read
+    branches:
+      -main
 
 jobs:
   test:
